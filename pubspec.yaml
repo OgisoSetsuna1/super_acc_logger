@@ -9,6 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  audioplayers: ^6.1.0
+  sensors_plus: ^4.0.2
+  csv: ^6.0.0
+  vibration: ^2.0.1
 
 dev_dependencies:
   flutter_test:
