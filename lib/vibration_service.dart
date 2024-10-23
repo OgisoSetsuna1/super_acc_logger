@@ -8,17 +8,17 @@ class VibrationService {
 
   void startVibration({
     int? amplitude = 255,
-    int? duration_in_sec = 5,
+    int? durationInSec = 5,
   }) {
     if (Vibration.hasVibrator() == false) {
       _showSnackBar('This device has no viberator!');
       return;
     }
     if (amplitude == null ||
-        duration_in_sec == null ||
+        durationInSec == null ||
         amplitude < 1 ||
         amplitude > 255 ||
-        duration_in_sec < 1) {
+        durationInSec < 1) {
       _showSnackBar('Wrong parameters!');
       return;
     }
@@ -30,7 +30,7 @@ class VibrationService {
       _showSnackBar('Vibration has started!');
     }
 
-    Vibration.vibrate(duration: duration_in_sec * 1000, amplitude: amplitude);
+    Vibration.vibrate(duration: durationInSec * 1000, amplitude: amplitude);
   }
 
   void _showSnackBar(String message) {

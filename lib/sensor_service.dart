@@ -1,33 +1,62 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:sensors_plus/sensors_plus.dart';
-import 'package:csv/csv.dart';
+import 'package:path_provider/path_provider.dart';
 
 class SensorService {
-  StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
+  final BuildContext context;
 
-  void startListeningAndWriting(String filePath) {
-    accelerometerEventStream(samplingPeriod: const Duration(milliseconds: 100))
-        .listen(
+  SensorService(this.context);
+
+  List<List<String>> data = [];
+  final startTime = DateTime.now().toUtc().toString();
+  StreamSubscription<AccelerometerEvent>? _subscription;
+
+  void startListening() {
+    _subscription = accelerometerEventStream().listen(
       (AccelerometerEvent event) {
-        _writeToCsv(event, filePath);
+        final timestamp = DateTime.now().toUtc().toString();
+        data.add([
+          timestamp,
+          event.x.toString(),
+          event.y.toString(),
+          event.z.toString()
+        ]);
+      },
+      onError: (error) {
+        _showSnackBar('Sensor error: $error');
+        _subscription?.cancel();
+      },
+      onDone: () {
+        _writeToFile();
       },
     );
   }
 
-  Future<void> _writeToCsv(AccelerometerEvent event, String filePath) async {
-    final List<List<dynamic>> data = [
-      [event.x, event.y, event.z]
-    ];
-
-    final String csv = const ListToCsvConverter().convert(data);
-
-    final File file = File(filePath);
-    await file.writeAsString(csv, mode: FileMode.append);
+  void stopListening() {
+    _subscription?.cancel();
   }
 
-  void stopListening() {
-    _accelerometerSubscription?.cancel();
-    _accelerometerSubscription = null;
+  Future<void> _writeToFile() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final filePath = '${directory.path}/$startTime.csv';
+    final file = File(filePath);
+    final sink = file.openWrite();
+    sink.write('timestamp,X,Y,Z\n');
+    for (var data in data) {
+      sink.writeAll(data, ',');
+      sink.write('\n');
+    }
+    await sink.close();
+
+    _showSnackBar('Accelerometer data has been saved to: $filePath');
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      duration: const Duration(seconds: 1),
+    ));
   }
 }

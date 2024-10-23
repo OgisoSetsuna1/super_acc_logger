@@ -21,8 +21,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final SensorService _sensorService = SensorService();
-
   final _amplitudeController = TextEditingController();
   final _durationController = TextEditingController();
 
@@ -61,8 +59,12 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () {
                 VibrationService(context).startVibration(
                   amplitude: int.tryParse(_amplitudeController.text),
-                  duration_in_sec: int.tryParse(_durationController.text),
+                  durationInSec: int.tryParse(_durationController.text),
                 );
+
+                final sensorService = SensorService(context);
+                sensorService.startListening();
+                // TODO
               },
               child: const Text('Start Vibration'),
             ),
