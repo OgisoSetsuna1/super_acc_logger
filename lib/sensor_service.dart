@@ -10,13 +10,17 @@ class SensorService {
   SensorService(this.context);
 
   List<List<String>> data = [];
-  final startTime = DateTime.now().toUtc().toString();
-  StreamSubscription<AccelerometerEvent>? _subscription;
+  final startTime = DateTime.now().toIso8601String();
+  StreamSubscription<UserAccelerometerEvent>? _subscription;
 
-  void startListening() {
-    _subscription = accelerometerEventStream().listen(
-      (AccelerometerEvent event) {
-        final timestamp = DateTime.now().toUtc().toString();
+  void startListening(int samplingFrequecy) {
+    // TODO
+    int samplingPeriod = 1000 ~/ samplingFrequecy;
+    _subscription = userAccelerometerEventStream(
+            samplingPeriod: Duration(milliseconds: samplingPeriod))
+        .listen(
+      (UserAccelerometerEvent event) {
+        final timestamp = DateTime.now().toIso8601String();
         data.add([
           timestamp,
           event.x.toString(),
@@ -28,24 +32,26 @@ class SensorService {
         _showSnackBar('Sensor error: $error');
         _subscription?.cancel();
       },
-      onDone: () {
-        _writeToFile();
-      },
     );
   }
 
   void stopListening() {
     _subscription?.cancel();
+    _writeToFile();
   }
 
   Future<void> _writeToFile() async {
-    final directory = await getApplicationDocumentsDirectory();
+    final directory = await getExternalStorageDirectory();
+    if (directory == null) {
+      _showSnackBar('Failed when saving accelerometer data!');
+      return;
+    }
     final filePath = '${directory.path}/$startTime.csv';
     final file = File(filePath);
     final sink = file.openWrite();
     sink.write('timestamp,X,Y,Z\n');
-    for (var data in data) {
-      sink.writeAll(data, ',');
+    for (var row in data) {
+      sink.writeAll(row, ',');
       sink.write('\n');
     }
     await sink.close();
@@ -56,7 +62,7 @@ class SensorService {
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(message),
-      duration: const Duration(seconds: 1),
+      duration: const Duration(seconds: 2),
     ));
   }
 }

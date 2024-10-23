@@ -6,19 +6,21 @@ class VibrationService {
 
   VibrationService(this.context);
 
-  void startVibration({
-    int? amplitude = 255,
-    int? durationInSec = 5,
-  }) {
+  void startVibration(
+      {int? amplitude = 255,
+      int? durationInSec = 5,
+      int? samplingFrequecy = 100}) {
     if (Vibration.hasVibrator() == false) {
       _showSnackBar('This device has no viberator!');
       return;
     }
     if (amplitude == null ||
         durationInSec == null ||
+        samplingFrequecy == null ||
         amplitude < 1 ||
         amplitude > 255 ||
-        durationInSec < 1) {
+        durationInSec < 1 ||
+        samplingFrequecy < 1) {
       _showSnackBar('Wrong parameters!');
       return;
     }

@@ -23,6 +23,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _amplitudeController = TextEditingController();
   final _durationController = TextEditingController();
+  final _samplingFrequencyController = TextEditingController();
 
   @override
   void initState() {
@@ -54,17 +55,38 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: const InputDecoration(labelText: 'Duration (sec)'),
               keyboardType: TextInputType.number,
             ),
+            TextField(
+              controller: _samplingFrequencyController,
+              decoration: const InputDecoration(
+                  labelText: 'Sampling Frequency [1-200]'),
+              keyboardType: TextInputType.number,
+            ),
             const SizedBox(height: 20.0),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
+                int? amplitude = int.tryParse(_amplitudeController.text);
+                int? durationInSec = int.tryParse(_durationController.text);
+                int? samplingFrequecy =
+                    int.tryParse(_samplingFrequencyController.text);
                 VibrationService(context).startVibration(
-                  amplitude: int.tryParse(_amplitudeController.text),
-                  durationInSec: int.tryParse(_durationController.text),
-                );
+                    amplitude: amplitude,
+                    durationInSec: durationInSec,
+                    samplingFrequecy: samplingFrequecy);
+
+                if (amplitude == null ||
+                    durationInSec == null ||
+                    samplingFrequecy == null ||
+                    amplitude < 1 ||
+                    amplitude > 255 ||
+                    durationInSec < 1 ||
+                    samplingFrequecy < 1) {
+                  return;
+                }
 
                 final sensorService = SensorService(context);
-                sensorService.startListening();
-                // TODO
+                sensorService.startListening(samplingFrequecy);
+                await Future.delayed(Duration(seconds: durationInSec));
+                sensorService.stopListening();
               },
               child: const Text('Start Vibration'),
             ),
