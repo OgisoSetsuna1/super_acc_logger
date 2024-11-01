@@ -104,9 +104,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     silenceDurationInMsec < 1 ||
                     repeatTime < 1 ||
                     samplingPeriod < 1) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text('Wrong parameters!'),
+                    duration: Duration(seconds: 2),
+                  ));
                   return;
                 }
 
+                await Future.delayed(Duration(seconds: 1));
                 VibrationService(context).startVibration(
                   amplitude: amplitude,
                   durationInMsec: durationInMsec,
@@ -116,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 final sensorService = SensorService(context);
                 sensorService.startListening(samplingPeriod: samplingPeriod);
-                await Future.delayed(Duration(milliseconds: durationInMsec));
+                await Future.delayed(Duration(milliseconds: (durationInMsec + silenceDurationInMsec) * repeatTime));
                 sensorService.stopListening(fileName: fileName);
               },
               child: const Text('Start Vibration'),
