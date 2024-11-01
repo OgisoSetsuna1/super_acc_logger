@@ -13,11 +13,9 @@ class SensorService {
   final startTime = DateTime.now().toIso8601String();
   StreamSubscription<UserAccelerometerEvent>? _subscription;
 
-  void startListening(int samplingFrequecy) {
-    // TODO
-    int samplingPeriod = 1000 ~/ samplingFrequecy;
+  void startListening({int samplingPeriod = 5}) {
     _subscription = userAccelerometerEventStream(
-            samplingPeriod: Duration(milliseconds: samplingPeriod))
+            samplingPeriod: SensorInterval.fastestInterval)
         .listen(
       (UserAccelerometerEvent event) {
         final timestamp = DateTime.now().toIso8601String();
@@ -35,18 +33,18 @@ class SensorService {
     );
   }
 
-  void stopListening() {
+  void stopListening({String fileName = ''}) {
     _subscription?.cancel();
-    _writeToFile();
+    _writeToFile(fileName: fileName);
   }
 
-  Future<void> _writeToFile() async {
+  Future<void> _writeToFile({String fileName = ''}) async {
     final directory = await getExternalStorageDirectory();
     if (directory == null) {
       _showSnackBar('Failed when saving accelerometer data!');
       return;
     }
-    final filePath = '${directory.path}/$startTime.csv';
+    final filePath = '${directory.path}/${fileName}_$startTime.csv';
     final file = File(filePath);
     final sink = file.openWrite();
     sink.write('timestamp,X,Y,Z\n');

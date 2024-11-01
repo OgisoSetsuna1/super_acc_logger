@@ -23,7 +23,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _amplitudeController = TextEditingController();
   final _durationController = TextEditingController();
-  final _samplingFrequencyController = TextEditingController();
+  final _silenceDurationController = TextEditingController();
+  final _repeatTimeController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _samplingPeriodController = TextEditingController();
 
   @override
   void initState() {
@@ -52,41 +55,69 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             TextField(
               controller: _durationController,
-              decoration: const InputDecoration(labelText: 'Duration (sec)'),
+              decoration:
+                  const InputDecoration(labelText: 'Vibration Duration (msec)'),
               keyboardType: TextInputType.number,
             ),
             TextField(
-              controller: _samplingFrequencyController,
-              decoration: const InputDecoration(
-                  labelText: 'Sampling Frequency [1-200]'),
+              controller: _silenceDurationController,
+              decoration:
+                  const InputDecoration(labelText: 'Silence Duration (msec)'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _repeatTimeController,
+              decoration: const InputDecoration(labelText: 'Repeat Time'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _samplingPeriodController,
+              decoration:
+                  const InputDecoration(labelText: 'Sampling Period (ms)'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'File Name'),
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 20.0),
             ElevatedButton(
               onPressed: () async {
                 int? amplitude = int.tryParse(_amplitudeController.text);
-                int? durationInSec = int.tryParse(_durationController.text);
-                int? samplingFrequecy =
-                    int.tryParse(_samplingFrequencyController.text);
-                VibrationService(context).startVibration(
-                    amplitude: amplitude,
-                    durationInSec: durationInSec,
-                    samplingFrequecy: samplingFrequecy);
+                int? durationInMsec = int.tryParse(_durationController.text);
+                int? silenceDurationInMsec =
+                    int.tryParse(_silenceDurationController.text);
+                int? repeatTime = int.tryParse(_repeatTimeController.text);
+                String fileName = _nameController.text;
+                int? samplingPeriod =
+                    int.tryParse(_samplingPeriodController.text);
 
                 if (amplitude == null ||
-                    durationInSec == null ||
-                    samplingFrequecy == null ||
+                    durationInMsec == null ||
+                    silenceDurationInMsec == null ||
+                    repeatTime == null ||
+                    samplingPeriod == null ||
                     amplitude < 1 ||
                     amplitude > 255 ||
-                    durationInSec < 1 ||
-                    samplingFrequecy < 1) {
+                    durationInMsec < 1 ||
+                    silenceDurationInMsec < 1 ||
+                    repeatTime < 1 ||
+                    samplingPeriod < 1) {
                   return;
                 }
 
+                VibrationService(context).startVibration(
+                  amplitude: amplitude,
+                  durationInMsec: durationInMsec,
+                  silenceDurationInMsec: silenceDurationInMsec,
+                  repeatTime: repeatTime,
+                );
+
                 final sensorService = SensorService(context);
-                sensorService.startListening(samplingFrequecy);
-                await Future.delayed(Duration(seconds: durationInSec));
-                sensorService.stopListening();
+                sensorService.startListening(samplingPeriod: samplingPeriod);
+                await Future.delayed(Duration(milliseconds: durationInMsec));
+                sensorService.stopListening(fileName: fileName);
               },
               child: const Text('Start Vibration'),
             ),

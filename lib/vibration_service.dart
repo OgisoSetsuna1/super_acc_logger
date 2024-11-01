@@ -7,21 +7,12 @@ class VibrationService {
   VibrationService(this.context);
 
   void startVibration(
-      {int? amplitude = 255,
-      int? durationInSec = 5,
-      int? samplingFrequecy = 100}) {
+      {int amplitude = 255,
+      int durationInMsec = 900,
+      int silenceDurationInMsec = 100,
+      int repeatTime = 5}) {
     if (Vibration.hasVibrator() == false) {
       _showSnackBar('This device has no viberator!');
-      return;
-    }
-    if (amplitude == null ||
-        durationInSec == null ||
-        samplingFrequecy == null ||
-        amplitude < 1 ||
-        amplitude > 255 ||
-        durationInSec < 1 ||
-        samplingFrequecy < 1) {
-      _showSnackBar('Wrong parameters!');
       return;
     }
     if (Vibration.hasAmplitudeControl() == false ||
@@ -32,7 +23,13 @@ class VibrationService {
       _showSnackBar('Vibration has started!');
     }
 
-    Vibration.vibrate(duration: durationInSec * 1000, amplitude: amplitude);
+    List<int> vibrationPattern = [];
+    for (int i = 0; i < repeatTime; i++) {
+      vibrationPattern.add(silenceDurationInMsec);
+      vibrationPattern.add(durationInMsec);
+    }
+
+    Vibration.vibrate(pattern: vibrationPattern, amplitude: amplitude);
   }
 
   void _showSnackBar(String message) {
