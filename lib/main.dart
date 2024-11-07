@@ -133,7 +133,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 await Future.delayed(Duration(
                     milliseconds:
                         (durationInMsec + silenceDurationInMsec) * repeatTime));
-                sensorService.stopListening(fileName: fileName);
+                sensorService.stopListening(
+                    fileName: fileName, batchSize: 1000);
                 microphoneService.stopListening();
               },
               child: const Text('Start Vibration'),
