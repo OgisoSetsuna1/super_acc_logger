@@ -12,7 +12,26 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: HomeScreen(),
+      home: DefaultTabController(
+        length: 2, // Number of tabs
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('FBD Logger'),
+            bottom: const TabBar(
+              tabs: [
+                Tab(text: 'Vibration'),
+                Tab(text: 'Sound'),
+              ],
+            ),
+          ),
+          body: TabBarView(
+            children: [
+              HomeScreen(), // Content of the HomeScreen tab
+              SecondScreen(), // Content of the SecondScreen tab
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -38,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _silenceDurationController.text = '100';
     _repeatTimeController.text = '5';
     _samplingPeriodController.text = '5';
-    _nameController.text = 'test';
+    _nameController.text = 'test_vibration';
     var status = await Permission.microphone.status;
     if (!status.isGranted) {
       await Permission.microphone.request();
@@ -53,9 +72,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Super Accelerometer Logger'),
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -91,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(labelText: 'File Name'),
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.text,
             ),
             const SizedBox(height: 20.0),
             ElevatedButton(
@@ -102,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     int.tryParse(_silenceDurationController.text);
                 int? repeatTime = int.tryParse(_repeatTimeController.text);
                 String fileName =
-                    '${DateTime.now().toIso8601String()}_${_nameController.text}';
+                    '${_nameController.text}_${DateTime.now().toIso8601String()}';
                 int? samplingPeriod =
                     int.tryParse(_samplingPeriodController.text);
 
@@ -144,6 +160,103 @@ class _HomeScreenState extends State<HomeScreen> {
                 microphoneService.stopListening();
               },
               child: const Text('Start Vibration'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SecondScreen extends StatefulWidget {
+  @override
+  _SecondScreenState createState() => _SecondScreenState();
+}
+
+class _SecondScreenState extends State<SecondScreen> {
+  final _frequencyController = TextEditingController();
+  final _endFrequencyController = TextEditingController();
+  final _durationController = TextEditingController();
+  final _repeatTimeController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _samplingPeriodController = TextEditingController();
+  String _selectedItem = 'Fixed';
+
+  @override
+  void initState() {
+    super.initState();
+    _frequencyController.text = '500';
+    _endFrequencyController.text = '1000';
+    _durationController.text = '1000';
+    _repeatTimeController.text = '5';
+    _samplingPeriodController.text = '5';
+    _nameController.text = 'test_sound';
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: <Widget>[
+            DropdownButton<String>(
+              value: _selectedItem,
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedItem = newValue!;
+                });
+              },
+              items: <String>['Fixed', 'Chirp']
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+            TextField(
+              controller: _frequencyController,
+              decoration: const InputDecoration(
+                  labelText: 'Frequency / Start Frequency (Hz)'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _endFrequencyController,
+              decoration: const InputDecoration(
+                  labelText: 'End Frequency (Hz, only for Chirp)'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _durationController,
+              decoration: const InputDecoration(labelText: 'Duration (ms)'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _repeatTimeController,
+              decoration: const InputDecoration(labelText: 'Repeat Time'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _samplingPeriodController,
+              decoration:
+                  const InputDecoration(labelText: 'Sampling Period (ms)'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'File Name'),
+              keyboardType: TextInputType.text,
+            ),
+            const SizedBox(height: 20.0),
+            ElevatedButton(
+              onPressed: () async {},
+              child: const Text('Start Playing Sound'),
             ),
           ],
         ),
