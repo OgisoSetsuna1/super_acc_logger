@@ -10,7 +10,6 @@ class SensorService {
   SensorService(this.context);
 
   List<List<String>> data = [];
-  final startTime = DateTime.now().toIso8601String();
   StreamSubscription<UserAccelerometerEvent>? _subscription;
 
   void startListening({int samplingPeriod = 5}) {
@@ -44,7 +43,7 @@ class SensorService {
       _showSnackBar('Failed when saving accelerometer data!');
       return;
     }
-    final filePath = '${directory.path}/${fileName}_$startTime.csv';
+    final filePath = '${directory.path}/$fileName.csv';
     final file = File(filePath);
     final sink = file.openWrite();
     sink.write('timestamp,X,Y,Z\n');

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'vibration_service.dart';
 import 'sensor_service.dart';
+import 'microphone_service.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-void main() {
+void main() async {
   runApp(MyApp());
 }
 
@@ -29,8 +31,12 @@ class _HomeScreenState extends State<HomeScreen> {
   final _samplingPeriodController = TextEditingController();
 
   @override
-  void initState() {
+  void initState() async {
     super.initState();
+    var status = await Permission.microphone.status;
+    if (!status.isGranted) {
+      await Permission.microphone.request();
+    }
   }
 
   @override
@@ -89,7 +95,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 int? silenceDurationInMsec =
                     int.tryParse(_silenceDurationController.text);
                 int? repeatTime = int.tryParse(_repeatTimeController.text);
-                String fileName = _nameController.text;
+                String fileName =
+                    '${DateTime.now().toIso8601String()}_${_nameController.text}';
                 int? samplingPeriod =
                     int.tryParse(_samplingPeriodController.text);
 
@@ -111,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   return;
                 }
 
-                await Future.delayed(Duration(seconds: 1));
+                await Future.delayed(const Duration(seconds: 1));
                 VibrationService(context).startVibration(
                   amplitude: amplitude,
                   durationInMsec: durationInMsec,
@@ -120,9 +127,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
 
                 final sensorService = SensorService(context);
+                final microphoneService = MicrophoneService(context, fileName);
                 sensorService.startListening(samplingPeriod: samplingPeriod);
-                await Future.delayed(Duration(milliseconds: (durationInMsec + silenceDurationInMsec) * repeatTime));
+                microphoneService.startListening();
+                await Future.delayed(Duration(
+                    milliseconds:
+                        (durationInMsec + silenceDurationInMsec) * repeatTime));
                 sensorService.stopListening(fileName: fileName);
+                microphoneService.stopListening();
               },
               child: const Text('Start Vibration'),
             ),

@@ -13,6 +13,8 @@ dependencies:
   sensors_plus: ^4.0.2
   csv: ^6.0.0
   vibration: ^2.0.1
+  flutter_sound: ^9.2.13
+  permission_handler: ^11.3.1
 
 dev_dependencies:
   flutter_test:
