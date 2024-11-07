@@ -33,6 +33,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() async {
     super.initState();
+    _amplitudeController.text = '255';
+    _durationController.text = '900';
+    _silenceDurationController.text = '100';
+    _repeatTimeController.text = '5';
+    _samplingPeriodController.text = '5';
+    _nameController.text = 'test';
     var status = await Permission.microphone.status;
     if (!status.isGranted) {
       await Permission.microphone.request();
@@ -62,13 +68,13 @@ class _HomeScreenState extends State<HomeScreen> {
             TextField(
               controller: _durationController,
               decoration:
-                  const InputDecoration(labelText: 'Vibration Duration (msec)'),
+                  const InputDecoration(labelText: 'Vibration Duration (ms)'),
               keyboardType: TextInputType.number,
             ),
             TextField(
               controller: _silenceDurationController,
               decoration:
-                  const InputDecoration(labelText: 'Silence Duration (msec)'),
+                  const InputDecoration(labelText: 'Silence Duration (ms)'),
               keyboardType: TextInputType.number,
             ),
             TextField(
