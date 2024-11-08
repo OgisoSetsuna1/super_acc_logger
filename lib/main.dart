@@ -3,6 +3,7 @@ import 'vibration_service.dart';
 import 'sensor_service.dart';
 import 'microphone_service.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'audio_service.dart';
 
 void main() async {
   runApp(MyApp());
@@ -140,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   return;
                 }
 
-                await Future.delayed(const Duration(seconds: 1));
+                await Future.delayed(const Duration(seconds: 5));
                 VibrationService(context).startVibration(
                   amplitude: amplitude,
                   durationInMsec: durationInMsec,
@@ -180,7 +181,7 @@ class _SecondScreenState extends State<SecondScreen> {
   final _repeatTimeController = TextEditingController();
   final _nameController = TextEditingController();
   final _samplingPeriodController = TextEditingController();
-  String _selectedItem = 'Fixed';
+  String typeString = 'Fixed';
 
   @override
   void initState() {
@@ -206,10 +207,10 @@ class _SecondScreenState extends State<SecondScreen> {
         child: Column(
           children: <Widget>[
             DropdownButton<String>(
-              value: _selectedItem,
+              value: typeString,
               onChanged: (String? newValue) {
                 setState(() {
-                  _selectedItem = newValue!;
+                  typeString = newValue!;
                 });
               },
               items: <String>['Fixed', 'Chirp']
@@ -255,7 +256,68 @@ class _SecondScreenState extends State<SecondScreen> {
             ),
             const SizedBox(height: 20.0),
             ElevatedButton(
-              onPressed: () async {},
+              onPressed: () async {
+                int? frequency = int.tryParse(_frequencyController.text);
+                int? endFrequency = int.tryParse(_endFrequencyController.text);
+                int? durationInMsec = int.tryParse(_durationController.text);
+                int? repeatTime = int.tryParse(_repeatTimeController.text);
+                String fileName =
+                    '${_nameController.text}_${DateTime.now().toIso8601String()}';
+                int? samplingPeriod =
+                    int.tryParse(_samplingPeriodController.text);
+
+                if (frequency == null ||
+                    endFrequency == null ||
+                    durationInMsec == null ||
+                    repeatTime == null ||
+                    samplingPeriod == null ||
+                    frequency < 1 ||
+                    endFrequency < 1 ||
+                    durationInMsec < 1 ||
+                    repeatTime < 1 ||
+                    samplingPeriod < 1) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text('Wrong parameters!'),
+                    duration: Duration(seconds: 2),
+                  ));
+                  return;
+                }
+
+                final audioService = AudioService(context);
+                final audioFilePath = await audioService.generateAudio(
+                    typeString,
+                    frequency,
+                    endFrequency,
+                    durationInMsec,
+                    repeatTime);
+                if (audioFilePath != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text('Generate audio file: $audioFilePath'),
+                    duration: const Duration(seconds: 2),
+                  ));
+                } else {
+                  return;
+                }
+
+                await Future.delayed(const Duration(seconds: 5));
+                audioService.playAudio(audioFilePath);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  content: Text('Start playing audio!'),
+                  duration: Duration(seconds: 1),
+                ));
+
+                final sensorService = SensorService(context);
+                final microphoneService = MicrophoneService(context, fileName);
+                sensorService.startListening(samplingPeriod: samplingPeriod);
+                microphoneService.startListening();
+                await Future.delayed(
+                    Duration(milliseconds: repeatTime * durationInMsec));
+
+                audioService.stopPlayingAudio();
+                sensorService.stopListening(
+                    fileName: fileName, batchSize: 1000);
+                microphoneService.stopListening();
+              },
               child: const Text('Start Playing Sound'),
             ),
           ],
