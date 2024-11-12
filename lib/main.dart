@@ -4,6 +4,7 @@ import 'sensor_service.dart';
 import 'microphone_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'audio_service.dart';
+import 'grid.dart';
 
 void main() async {
   runApp(MyApp());
@@ -14,23 +15,33 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: DefaultTabController(
-        length: 2, // Number of tabs
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text('FBD Logger'),
-            bottom: const TabBar(
-              tabs: [
-                Tab(text: 'Vibration'),
-                Tab(text: 'Sound'),
-              ],
+        length: 2,
+        child: Stack(
+          children: <Widget>[
+            Scaffold(
+              appBar: AppBar(
+                title: const Text('FBD Logger'),
+                bottom: const TabBar(
+                  tabs: [
+                    Tab(text: 'Vibration'),
+                    Tab(text: 'Sound'),
+                  ],
+                ),
+              ),
+              body: TabBarView(
+                children: [
+                  HomeScreen(),
+                  SecondScreen(),
+                ],
+              ),
             ),
-          ),
-          body: TabBarView(
-            children: [
-              HomeScreen(), // Content of the HomeScreen tab
-              SecondScreen(), // Content of the SecondScreen tab
-            ],
-          ),
+            IgnorePointer(
+                child: Container(
+              width: double.infinity,
+              height: double.infinity,
+              child: CustomGridLines(),
+            )),
+          ],
         ),
       ),
     );
