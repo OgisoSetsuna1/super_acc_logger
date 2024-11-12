@@ -55,7 +55,7 @@ class SensorService {
       batch.add(row);
       if (batch.length == batchSize) {
         await file.writeAsString(
-          batch.map((row) => row.join(',')).join('\n'),
+          '${batch.map((row) => row.join(',')).join('\n')}\n',
           mode: FileMode.writeOnlyAppend,
         );
         batch.clear();
@@ -64,7 +64,7 @@ class SensorService {
 
     if (batch.isNotEmpty) {
       await file.writeAsString(
-        batch.map((row) => row.join(',')).join('\n'),
+        '${batch.map((row) => row.join(',')).join('\n')}\n',
         mode: FileMode.writeOnlyAppend,
       );
     }
