@@ -31,7 +31,7 @@ class MicrophoneService {
       await _recorder!.startRecorder(
         toFile: filePath,
         codec: Codec.aacADTS,
-        bitRate: 16000,
+        bitRate: 44100,
       );
       _isRecording = true;
       _recorderSubscription = _recorder!.onProgress!.listen((e) {
