@@ -33,11 +33,11 @@ class AudioService {
         final int numSamples =
             (sampleRate * duration * repeatTime / 1000).round();
         final double sampleIncrement = startFrequency * 2 * pi / sampleRate;
-        final Uint8List pcmData = Uint8List(numSamples * 2); // 16-bit PCM
+        final Uint8List pcmData = Uint8List(numSamples * 2);
 
         for (int i = 0, idx = 0; i < numSamples; ++i, idx += 2) {
           final double sample = sin(i * sampleIncrement);
-          final int sampleInt = (sample * 32767).round(); // 16-bit PCM range
+          final int sampleInt = (sample * 32767).round();
           pcmData[idx] = sampleInt.toUnsigned(8);
           pcmData[idx + 1] = (sampleInt >> 8).toUnsigned(8);
         }
@@ -55,9 +55,9 @@ class AudioService {
         final Uint8List pcmData = Uint8List(numSamples * 2);
 
         for (int i = 0, idx = 0; i < numSamples; ++i, idx += 2) {
-          final double frequency =
-              startFrequency + (endFrequency - startFrequency) * i / numSamples;
-          final double sample = sin(2 * pi * frequency * i / sampleRate);
+          final double t = i / sampleRate;
+          final double sample = sin(2 * pi * startFrequency * t +
+              pi * (endFrequency - startFrequency) * t * t / duration);
           final int sampleInt = (sample * 32767).round();
           pcmData[idx] = sampleInt.toUnsigned(8);
           pcmData[idx + 1] = (sampleInt >> 8).toUnsigned(8);
