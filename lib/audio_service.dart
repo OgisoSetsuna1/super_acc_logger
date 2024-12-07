@@ -12,6 +12,41 @@ class AudioService {
 
   AudioService(this.context);
 
+  Future<Uint8List> generatePulseLead(
+      int startFrequency, int sampleRate) async {
+    final int pulseDuration1 = (sampleRate * 0.1).round();
+    final int silenceDuration1 = (sampleRate * 0.1).round();
+    final int pulseDuration2 = (sampleRate * 0.1).round();
+    final int silenceDuration2 = (sampleRate * 0.7).round();
+
+    final int totalDuration =
+        pulseDuration1 + silenceDuration1 + pulseDuration2 + silenceDuration2;
+
+    final Uint8List pcmData = Uint8List(totalDuration * 2);
+
+    int idx = 0;
+
+    for (int i = 0; i < pulseDuration1; ++i, idx += 2) {
+      final double sample = sin(i * startFrequency * 2 * pi / sampleRate);
+      final int sampleInt = (sample * 32767).round();
+      pcmData[idx] = sampleInt.toUnsigned(8);
+      pcmData[idx + 1] = (sampleInt >> 8).toUnsigned(8);
+    }
+
+    idx += silenceDuration1 * 2;
+
+    for (int i = 0; i < pulseDuration2; ++i, idx += 2) {
+      final double sample = sin(i * startFrequency * 2 * pi / sampleRate);
+      final int sampleInt = (sample * 32767).round();
+      pcmData[idx] = sampleInt.toUnsigned(8);
+      pcmData[idx + 1] = (sampleInt >> 8).toUnsigned(8);
+    }
+
+    idx += silenceDuration2 * 2;
+
+    return pcmData;
+  }
+
   Future<String?> generateAudio(String type, int startFrequency,
       int endFrequency, int duration, int repeatTime) async {
     final directory = await getExternalStorageDirectory();
@@ -41,7 +76,15 @@ class AudioService {
           pcmData[idx] = sampleInt.toUnsigned(8);
           pcmData[idx + 1] = (sampleInt >> 8).toUnsigned(8);
         }
-        file.writeAsBytesSync(pcmData);
+
+        final Uint8List pulseLead =
+            await generatePulseLead(startFrequency, sampleRate);
+        final Uint8List finalData =
+            Uint8List(pulseLead.length + pcmData.length);
+        finalData.setRange(0, pulseLead.length, pulseLead);
+        finalData.setRange(pulseLead.length, finalData.length, pcmData);
+
+        file.writeAsBytesSync(finalData);
       }
 
       return filePath;
@@ -69,7 +112,15 @@ class AudioService {
           repeatedPcmData.setRange(
               i * numSamples * 2, (i + 1) * numSamples * 2, pcmData);
         }
-        file.writeAsBytesSync(repeatedPcmData);
+
+        final Uint8List pulseLead =
+            await generatePulseLead(startFrequency, sampleRate);
+        final Uint8List finalData =
+            Uint8List(pulseLead.length + repeatedPcmData.length);
+        finalData.setRange(0, pulseLead.length, pulseLead);
+        finalData.setRange(pulseLead.length, finalData.length, repeatedPcmData);
+
+        file.writeAsBytesSync(finalData);
       }
       return filePath;
     } else {

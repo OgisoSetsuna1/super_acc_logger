@@ -321,8 +321,9 @@ class _SecondScreenState extends State<SecondScreen> {
                 final microphoneService = MicrophoneService(context, fileName);
                 sensorService.startListening(samplingPeriod: samplingPeriod);
                 microphoneService.startListening();
-                await Future.delayed(
-                    Duration(milliseconds: repeatTime * durationInMsec));
+                // first 1000 ms for pulse lead, second 1000 ms for extra recording time
+                await Future.delayed(Duration(
+                    milliseconds: 1000 + repeatTime * durationInMsec + 1000));
 
                 audioService.stopPlayingAudio();
                 sensorService.stopListening(

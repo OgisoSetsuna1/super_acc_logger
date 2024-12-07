@@ -13,7 +13,7 @@ class GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Paint linePaint = Paint()
-      ..color = Colors.black.withOpacity(0.3)
+      ..color = Colors.red.withOpacity(0.3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
